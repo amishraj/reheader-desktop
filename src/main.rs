@@ -221,7 +221,13 @@ where
 
 fn init_tracing() {
     use tracing_subscriber::EnvFilter;
-    let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
+    // hudsucker logs one ERROR per failed upstream connection. On a corporate
+    // network the browser fires constant third-party telemetry (analytics,
+    // crash reporters) that the proxy blocks, which floods the terminal with
+    // scary-looking but harmless 407s. Silence hudsucker by default; set
+    // RUST_LOG=hudsucker=info to see per-connection detail when debugging.
+    let filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| EnvFilter::new("info,hudsucker=off"));
     tracing_subscriber::fmt()
         .with_env_filter(filter)
         .with_target(false)

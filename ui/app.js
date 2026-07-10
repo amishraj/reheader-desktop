@@ -404,7 +404,9 @@ async function saveUpstream() {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ proxy }),
     })).json();
-    showToast(res.upstream ? `Upstream proxy set to ${res.upstream} — proxy restarted` : 'Upstream proxy cleared — direct connection');
+    showToast(res.upstream
+      ? `Upstream proxy set to ${res.upstream} — applied (no browser restart needed, just reload the page)`
+      : 'Upstream proxy cleared — direct connection');
     setTimeout(loadInfo, 400);
   } catch (e) {
     showToast(`Could not update upstream proxy: ${e.message}`);
