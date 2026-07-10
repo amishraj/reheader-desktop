@@ -75,6 +75,10 @@ pub struct AppState {
     pub selected_profile: usize,
     #[serde(default)]
     pub paused: bool,
+    /// Verify mode: echo the applied header changes into an `X-ReHeader-Applied`
+    /// response header so they're visible in browser DevTools.
+    #[serde(default)]
+    pub verify: bool,
     #[serde(default = "default_theme")]
     pub theme: String,
 }
@@ -101,6 +105,7 @@ pub fn default_state() -> AppState {
         }],
         selected_profile: 0,
         paused: false,
+        verify: false,
         theme: default_theme(),
     }
 }
@@ -142,6 +147,8 @@ pub struct Compiled {
     /// Regex sources that failed to compile, surfaced to the UI.
     pub errors: Vec<String>,
     pub active_count: usize,
+    /// Echo applied changes into a response header (see `AppState::verify`).
+    pub verify: bool,
 }
 
 /// What to do with a single request, decided by matching every enabled profile.
@@ -277,6 +284,7 @@ pub fn compile(state: &AppState) -> Compiled {
         profiles,
         errors,
         active_count,
+        verify: state.verify,
     }
 }
 
@@ -400,6 +408,7 @@ mod tests {
             profiles: vec![p],
             selected_profile: 0,
             paused: false,
+            verify: false,
             theme: "auto".into(),
         }
     }

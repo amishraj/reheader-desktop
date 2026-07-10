@@ -464,6 +464,8 @@ async function init() {
 
   $('#launchBtn').addEventListener('click', launch);
   $('#upstreamSave').addEventListener('click', saveUpstream);
+  $('#verifyToggle').checked = !!state.verify;
+  $('#verifyToggle').addEventListener('change', (e) => { state.verify = e.target.checked; save(); });
   $('#pauseBtn').addEventListener('click', () => { state.paused = !state.paused; save(); render(); });
   $('#resumeBtn').addEventListener('click', () => { state.paused = false; save(); render(); });
   $('#menuBtn').addEventListener('click', (e) => { e.stopPropagation(); if ($('#menu').hidden) openMainMenu(e.currentTarget); else $('#menu').hidden = true; });

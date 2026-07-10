@@ -57,6 +57,16 @@
           corporate proxy instead of connecting directly. Auto-detected when possible.
         </p>
       </div>
+      <label class="verify-toggle">
+        <input type="checkbox" id="verifyToggle" />
+        <span>
+          <strong>Verify mode</strong> — adds an <code>X-ReHeader-Applied</code>
+          response header listing exactly what ReHeader applied to each request,
+          so you can see it in DevTools → Network → Response Headers. Request-header
+          injections aren't visible in DevTools otherwise (the proxy adds them
+          after the browser). Turn off for normal use.
+        </span>
+      </label>
       <details class="advanced">
         <summary>Manual setup &amp; details</summary>
         <div class="advanced-body">

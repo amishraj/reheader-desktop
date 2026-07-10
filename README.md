@@ -106,6 +106,31 @@ HTTP/HTTPS proxy at `127.0.0.1:8888` and either:
 - **Launch a Chromium browser with the SPKI pin** shown there — no install
   needed. The exact command line is displayed for you to copy.
 
+## Verifying your headers are applied
+
+Because ReHeader is a **proxy**, not an extension, it adds your **request**
+headers *after* the browser has sent them — so Chrome DevTools' **Request
+Headers** won't show them (DevTools shows what the browser sent; the server
+still receives your headers). This surprises people coming from ModHeader,
+which runs inside the browser.
+
+To see exactly what's being applied, turn on **Verify mode** in the control
+panel. It adds a response header you *can* see in DevTools:
+
+```
+X-ReHeader-Applied: req[Authorization=Bearer x, -Referer] resp[X-Frame-Options=ALLOW]
+```
+
+Open DevTools → **Network** → click the request → **Response Headers**. If you
+see `X-ReHeader-Applied` listing your changes, they're working. If it shows
+`req[] resp[]`, ReHeader is in the path but no rule matched that URL — usually a
+**filter** that doesn't match (loosen or remove it). If the header is absent
+entirely, that request wasn't intercepted (wrong window, or a cached response —
+hard-reload with cache disabled).
+
+**Response-header** changes are always visible in DevTools directly (ReHeader
+edits them before they reach the browser). Turn Verify mode off for normal use.
+
 ## How it works
 
 ```

@@ -19,6 +19,9 @@ use reheader_core::rules::{Compiled, HeaderAction, HeaderOp};
 pub struct RuleHandler {
     compiled: Arc<RwLock<Compiled>>,
     pending: Vec<HeaderAction>,
+    /// In verify mode, a human-readable summary of what this exchange applied,
+    /// echoed back as the `X-ReHeader-Applied` response header.
+    applied: Option<String>,
 }
 
 impl RuleHandler {
@@ -26,6 +29,7 @@ impl RuleHandler {
         Self {
             compiled,
             pending: Vec::new(),
+            applied: None,
         }
     }
 }
@@ -44,8 +48,8 @@ impl HttpHandler for RuleHandler {
         }
 
         let url = full_url(&req);
-        let plan = match self.compiled.read() {
-            Ok(c) => c.plan_for(&url),
+        let (plan, verify) = match self.compiled.read() {
+            Ok(c) => (c.plan_for(&url), c.verify),
             Err(_) => return RequestOrResponse::Request(req),
         };
 
@@ -58,6 +62,7 @@ impl HttpHandler for RuleHandler {
             return RequestOrResponse::Response(resp);
         }
 
+        self.applied = verify.then(|| verify_summary(&plan));
         self.pending = plan.response_headers;
         let (mut parts, body) = req.into_parts();
         apply(&mut parts.headers, &plan.request_headers);
@@ -70,8 +75,34 @@ impl HttpHandler for RuleHandler {
         mut res: Response<Body>,
     ) -> Response<Body> {
         apply(res.headers_mut(), &self.pending);
+        if let Some(summary) = &self.applied {
+            if let Ok(value) = HeaderValue::from_str(summary) {
+                res.headers_mut()
+                    .insert(HeaderName::from_static("x-reheader-applied"), value);
+            }
+        }
         res
     }
+}
+
+/// Build the `X-ReHeader-Applied` value: what request and response header
+/// changes this exchange applied. `req[]`/`resp[]` empty means no rule matched
+/// (e.g. a URL filter excluded this request) — useful for debugging filters.
+fn verify_summary(plan: &reheader_core::rules::Plan) -> String {
+    fn fmt(ops: &[HeaderAction]) -> String {
+        ops.iter()
+            .map(|op| match op.op {
+                HeaderOp::Set => format!("{}={}", op.name, op.value),
+                HeaderOp::Remove => format!("-{}", op.name),
+            })
+            .collect::<Vec<_>>()
+            .join(", ")
+    }
+    format!(
+        "req[{}] resp[{}]",
+        fmt(&plan.request_headers),
+        fmt(&plan.response_headers)
+    )
 }
 
 // WebSockets are tunneled through unchanged.
