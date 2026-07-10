@@ -1,0 +1,42 @@
+[package]
+name = "reheader-desktop"
+version = "0.1.0"
+edition = "2021"
+description = "Modify HTTP request/response headers in any browser via a local proxy — no extension, no admin rights. A ModHeader replacement for locked-down environments."
+license = "MIT"
+repository = "https://github.com/amishraj/reheader-desktop"
+default-run = "reheader-desktop"
+
+# The rule engine is a light library (serde + regex only) so `cargo test --lib`
+# stays fast and doesn't drag in the proxy/TLS dependency tree.
+[lib]
+name = "reheader_core"
+path = "src/lib.rs"
+
+[[bin]]
+name = "reheader-desktop"
+path = "src/main.rs"
+
+[dependencies]
+# Rule engine (also used by the binary)
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+regex = "1"
+
+# Binary-only: proxy, UI server, crypto, plumbing
+hudsucker = "0.24"
+http = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "fs", "process"] }
+axum = "0.8"
+sha2 = "0.10"
+base64 = "0.22"
+dirs = "5"
+clap = { version = "4", features = ["derive"] }
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
