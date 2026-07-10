@@ -325,6 +325,21 @@ impl Compiled {
     pub fn active_count(&self) -> usize {
         self.active_count
     }
+
+    /// Every header change across all enabled profiles, ignoring URL filters.
+    /// Used by the built-in inspector to show what ReHeader is configured to
+    /// apply, independent of which site a request is for.
+    pub fn global_plan(&self) -> Plan {
+        let mut plan = Plan::default();
+        if self.paused {
+            return plan;
+        }
+        for profile in &self.profiles {
+            merge_headers(&mut plan.request_headers, &profile.req_headers);
+            merge_headers(&mut plan.response_headers, &profile.resp_headers);
+        }
+        plan
+    }
 }
 
 impl CompiledProfile {

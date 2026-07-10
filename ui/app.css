@@ -141,7 +141,12 @@ body {
 .upstream-row .cell { flex: 1; }
 .upstream-note { font-size: 12px; }
 
-.verify-toggle { display: flex; gap: 10px; align-items: flex-start; border-top: 1px solid var(--border); padding-top: 12px; font-size: 12.5px; color: var(--text-dim); cursor: pointer; }
+.inspector { border-top: 1px solid var(--border); padding-top: 12px; font-size: 12.5px; color: var(--text-dim); }
+.inspector strong { color: var(--text); }
+.inspector a { color: var(--accent); font-weight: 600; text-decoration: none; }
+.inspector a:hover { text-decoration: underline; }
+
+.verify-toggle { display: flex; gap: 10px; align-items: flex-start; padding-top: 10px; font-size: 12.5px; color: var(--text-dim); cursor: pointer; }
 .verify-toggle input { width: 16px; height: 16px; margin-top: 1px; accent-color: var(--accent); flex: none; cursor: pointer; }
 .verify-toggle strong { color: var(--text); }
 

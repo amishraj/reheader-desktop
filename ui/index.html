@@ -57,14 +57,19 @@
           corporate proxy instead of connecting directly. Auto-detected when possible.
         </p>
       </div>
+      <div class="inspector">
+        <strong>See exactly what's being sent:</strong> in this launched browser,
+        open <a href="http://reheader.echo" target="_blank" rel="noreferrer">http://reheader.echo</a>
+        — it lists the real outgoing request headers with your injected ones
+        highlighted. (Chrome's own DevTools can't show request headers a proxy
+        adds after the browser; this can.)
+      </div>
       <label class="verify-toggle">
         <input type="checkbox" id="verifyToggle" />
         <span>
-          <strong>Verify mode</strong> — adds an <code>X-ReHeader-Applied</code>
-          response header listing exactly what ReHeader applied to each request,
-          so you can see it in DevTools → Network → Response Headers. Request-header
-          injections aren't visible in DevTools otherwise (the proxy adds them
-          after the browser). Turn off for normal use.
+          <strong>Verify mode</strong> — also adds an <code>X-ReHeader-Applied</code>
+          response header listing what ReHeader applied to each request, visible in
+          DevTools → Network → Response Headers. Turn off for normal use.
         </span>
       </label>
       <details class="advanced">

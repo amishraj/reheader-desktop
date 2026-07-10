@@ -1,6 +1,6 @@
 [package]
 name = "reheader-desktop"
-version = "0.2.3"
+version = "0.2.4"
 edition = "2021"
 description = "Modify HTTP request/response headers in any browser via a local proxy — no extension, no admin rights. A ModHeader replacement for locked-down environments."
 license = "MIT"

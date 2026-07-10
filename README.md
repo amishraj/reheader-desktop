@@ -112,10 +112,17 @@ Because ReHeader is a **proxy**, not an extension, it adds your **request**
 headers *after* the browser has sent them — so Chrome DevTools' **Request
 Headers** won't show them (DevTools shows what the browser sent; the server
 still receives your headers). This surprises people coming from ModHeader,
-which runs inside the browser.
+which runs inside the browser. Every proxy tool (Charles, Fiddler, mitmproxy)
+behaves the same way.
 
-To see exactly what's being applied, turn on **Verify mode** in the control
-panel. It adds a response header you *can* see in DevTools:
+**Built-in inspector (easiest):** in the launched browser, visit
+**`http://reheader.echo`**. It lists the real outgoing request headers with your
+injected ones highlighted — the visibility DevTools can't give you. To check a
+specific site respecting URL filters, use
+`http://reheader.echo/?url=https://your-site.com/path`.
+
+**Verify mode:** turn it on in the control panel to also add a response header
+you *can* see in DevTools:
 
 ```
 X-ReHeader-Applied: req[Authorization=Bearer x, -Referer] resp[X-Frame-Options=ALLOW]
