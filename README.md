@@ -41,6 +41,24 @@ the dedicated window routes through ReHeader.
 > This is verified end-to-end in testing: real Chrome, nothing installed, loads
 > an intercepted HTTPS page and sees the injected header.
 
+## Works behind a corporate proxy
+
+On a company network, all traffic must go through the corporate proxy — so
+ReHeader forwards **through** it (`browser → ReHeader → company proxy →
+internet`) rather than connecting directly. It **auto-detects** your system
+proxy on startup (environment variables, the Windows registry / a PAC script, or
+macOS network settings) and chains through it automatically.
+
+If detection misses it, open the control panel and set **Corporate / upstream
+proxy** to `host:port` — it's remembered and applied without restarting the app.
+Set it back to blank for a direct connection. (Transparent proxies and ones your
+machine authenticates to automatically work out of the box; proxies that pop up
+a username/password prompt aren't supported yet.)
+
+> If you previously saw **502 errors** on every site, this is why — an earlier
+> build connected directly and your network blocked it. Set/confirm the upstream
+> proxy and it'll route correctly.
+
 ## Install
 
 1. Download the binary for your OS from
@@ -75,6 +93,8 @@ terminal (or close the app).
   extension **and from ModHeader**
 - **Pause** everything; live count of active modifications; light / dark themes
 - One-click launch for **Chrome, Edge, Brave, Arc**, or any Chromium
+- **Works behind a corporate proxy** — auto-detected and chained through
+  (see below)
 
 ## Prefer to configure it yourself?
 
@@ -122,11 +142,14 @@ shared with nothing external.
 ## CLI
 
 ```
-reheader-desktop [--proxy-port 8888] [--ui-port 8889]
-                 [--data-dir <path>] [--launch chrome|edge|brave|arc]
+reheader-desktop [--proxy-port 8888] [--ui-port 8889] [--data-dir <path>]
+                 [--launch chrome|edge|brave|arc]
+                 [--upstream-proxy host:port] [--no-upstream-proxy]
 ```
 
-`--launch` also opens the pre-configured browser on startup.
+`--launch` also opens the pre-configured browser on startup. `--upstream-proxy`
+overrides auto-detection (and is remembered); `--no-upstream-proxy` forces a
+direct connection.
 
 ## Build from source
 

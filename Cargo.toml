@@ -1,6 +1,6 @@
 [package]
 name = "reheader-desktop"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 description = "Modify HTTP request/response headers in any browser via a local proxy — no extension, no admin rights. A ModHeader replacement for locked-down environments."
 license = "MIT"
@@ -25,8 +25,11 @@ regex = "1"
 
 # Binary-only: proxy, UI server, crypto, plumbing
 hudsucker = "0.24"
+# Upstream/corporate proxy chaining (CONNECT tunneling). rustls with the
+# machine's native trust store — so corporate TLS-inspection roots validate.
+hyper-http-proxy = { version = "1", default-features = false, features = ["rustls-tls-native-roots"] }
 http = "1"
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "fs", "process"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "fs", "process", "time", "sync"] }
 axum = "0.8"
 sha2 = "0.10"
 base64 = "0.22"
@@ -35,6 +38,9 @@ clap = { version = "4", features = ["derive"] }
 anyhow = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[target.'cfg(windows)'.dependencies]
+winreg = "0.52"
 
 [profile.release]
 strip = true

@@ -3,6 +3,7 @@
 //! pre-configured browser. Bound to 127.0.0.1 only.
 
 use std::path::PathBuf;
+use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, RwLock};
 
 use axum::{
@@ -13,8 +14,10 @@ use axum::{
     Json, Router,
 };
 use serde::{Deserialize, Serialize};
+use tokio::sync::Notify;
 
 use crate::launch;
+use crate::upstream;
 use reheader_core::rules::{compile, AppState, Compiled};
 
 pub struct Config {
@@ -26,11 +29,21 @@ pub struct Config {
     pub profile_dir: PathBuf,
 }
 
+/// Mutable runtime state shared with the proxy supervisor loop.
+pub struct Runtime {
+    pub upstream: RwLock<Option<String>>,
+    pub detected: Option<String>,
+    pub settings_path: PathBuf,
+    pub restart: Notify,
+    pub stop: AtomicBool,
+}
+
 #[derive(Clone)]
 pub struct AppCtx {
     pub state: Arc<RwLock<AppState>>,
     pub compiled: Arc<RwLock<Compiled>>,
     pub cfg: Arc<Config>,
+    pub runtime: Arc<Runtime>,
 }
 
 const INDEX: &str = include_str!("../ui/index.html");
@@ -46,6 +59,7 @@ pub async fn serve(addr: std::net::SocketAddr, ctx: AppCtx) {
         .route("/api/info", get(info))
         .route("/api/ca", get(download_ca))
         .route("/api/launch", post(launch_browser))
+        .route("/api/upstream", post(set_upstream))
         .with_state(ctx);
 
     match tokio::net::TcpListener::bind(addr).await {
@@ -116,6 +130,8 @@ struct Info {
     active_count: usize,
     errors: Vec<String>,
     browsers: Vec<BrowserInfo>,
+    upstream_proxy: Option<String>,
+    detected_proxy: Option<String>,
 }
 
 async fn info(State(ctx): State<AppCtx>) -> Json<Info> {
@@ -140,6 +156,36 @@ async fn info(State(ctx): State<AppCtx>) -> Json<Info> {
         active_count,
         errors,
         browsers,
+        upstream_proxy: ctx.runtime.upstream.read().unwrap().clone(),
+        detected_proxy: ctx.runtime.detected.clone(),
+    })
+}
+
+#[derive(Deserialize)]
+struct UpstreamReq {
+    #[serde(default)]
+    proxy: Option<String>,
+}
+
+#[derive(Serialize)]
+struct UpstreamResp {
+    ok: bool,
+    upstream: Option<String>,
+}
+
+/// Update the upstream proxy, persist it, and signal the supervisor to rebuild
+/// the proxy with the new connector.
+async fn set_upstream(State(ctx): State<AppCtx>, Json(req): Json<UpstreamReq>) -> Json<UpstreamResp> {
+    let value = req
+        .proxy
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty());
+    *ctx.runtime.upstream.write().unwrap() = value.clone();
+    upstream::save_upstream(&ctx.runtime.settings_path, value.as_deref());
+    ctx.runtime.restart.notify_one();
+    Json(UpstreamResp {
+        ok: true,
+        upstream: value,
     })
 }
 

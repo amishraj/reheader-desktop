@@ -42,6 +42,21 @@
         </div>
       </div>
       <div id="launchMsg" class="launch-msg" hidden></div>
+      <div class="upstream">
+        <div class="upstream-label">
+          <span>Corporate / upstream proxy</span>
+          <span id="upstreamHint" class="muted"></span>
+        </div>
+        <div class="upstream-row">
+          <input id="upstreamInput" class="cell" spellcheck="false"
+                 placeholder="host:port — leave blank for a direct connection" />
+          <button id="upstreamSave" class="btn">Save &amp; restart</button>
+        </div>
+        <p class="muted upstream-note">
+          On a company network, set this so ReHeader forwards traffic through your
+          corporate proxy instead of connecting directly. Auto-detected when possible.
+        </p>
+      </div>
       <details class="advanced">
         <summary>Manual setup &amp; details</summary>
         <div class="advanced-body">

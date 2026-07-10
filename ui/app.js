@@ -384,6 +384,31 @@ async function loadInfo() {
 
   const flag = `--proxy-server=127.0.0.1:${info.proxyPort} --ignore-certificate-errors-spki-list=${info.spki}`;
   $('#launchCmd').textContent = flag;
+
+  $('#upstreamInput').value = info.upstreamProxy || '';
+  const hint = $('#upstreamHint');
+  if (info.upstreamProxy) {
+    hint.textContent = `Active: ${info.upstreamProxy}`;
+  } else if (info.detectedProxy) {
+    hint.textContent = `Detected: ${info.detectedProxy} (click Save to use)`;
+    if (!$('#upstreamInput').value) $('#upstreamInput').value = info.detectedProxy;
+  } else {
+    hint.textContent = 'None detected — traffic goes direct';
+  }
+}
+
+async function saveUpstream() {
+  const proxy = $('#upstreamInput').value.trim();
+  try {
+    const res = await (await fetch('/api/upstream', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ proxy }),
+    })).json();
+    showToast(res.upstream ? `Upstream proxy set to ${res.upstream} — proxy restarted` : 'Upstream proxy cleared — direct connection');
+    setTimeout(loadInfo, 400);
+  } catch (e) {
+    showToast(`Could not update upstream proxy: ${e.message}`);
+  }
 }
 
 async function launch() {
@@ -436,6 +461,7 @@ async function init() {
   showErrors(info.errors);
 
   $('#launchBtn').addEventListener('click', launch);
+  $('#upstreamSave').addEventListener('click', saveUpstream);
   $('#pauseBtn').addEventListener('click', () => { state.paused = !state.paused; save(); render(); });
   $('#resumeBtn').addEventListener('click', () => { state.paused = false; save(); render(); });
   $('#menuBtn').addEventListener('click', (e) => { e.stopPropagation(); if ($('#menu').hidden) openMainMenu(e.currentTarget); else $('#menu').hidden = true; });
